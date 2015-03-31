@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+
+maildir = ARGV[0]
+mailboxes = Dir["#{maildir}/*/cur"] + Dir["#{maildir}/.*/cur"]
+
+mailboxes.each do |mb|
+  mb_type = mb =~ /spam\// ? :spam : :ham
+
+  puts "#{mb}"
+  i = 0
+
+  Dir.foreach mb do |mail|
+    next if mail =~ /^\.\.?$/
+
+    mail = File.join(mb, mail)
+
+    bogo_arg = mb_type == :spam ? '-s' : '-n'
+
+    cmd = "bogofilter #{bogo_arg} < #{mail}"
+
+    if !system cmd
+      fail "  ERROR running #{cmd}"
+    else
+      i += 1
+    end
+  end
+
+  puts "  #{i} #{mb_type} added"
+end
